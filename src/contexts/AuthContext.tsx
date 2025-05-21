@@ -11,7 +11,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string) => void;
+  login: (email: string, redirectUrl?: string) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const login = (email: string) => {
+  const login = (email: string, redirectUrl: string = '/') => {
     const newUser = { email };
     setUser(newUser);
     try {
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Failed to save user to localStorage", error);
     }
-    router.push('/');
+    router.push(redirectUrl);
   };
 
   const logout = () => {

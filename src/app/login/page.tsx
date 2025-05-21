@@ -1,32 +1,47 @@
 // src/app/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(''); // Password is for show, not validated
-  const { login, user } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  if (user) {
-    router.push('/');
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      const redirectUrl = searchParams.get('redirect') || '/';
+      router.push(redirectUrl);
+    }
+  }, [user, router, searchParams]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
-      login(email);
+      const redirectUrl = searchParams.get('redirect') || '/';
+      login(email, redirectUrl); // Pass redirectUrl to login function
     }
   };
+
+  // While auth is loading or if user becomes available and useEffect hasn't redirected yet
+  if (authLoading || user) {
+    return (
+      <div className="container mx-auto flex min-h-[calc(100vh-4rem-1px)] items-center justify-center p-4">
+        {/* Optional: Add a loader here if desired */}
+        <p>Loading...</p>
+      </div>
+    );
+  }
+  
 
   return (
     <div className="container mx-auto flex min-h-[calc(100vh-4rem-1px)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
