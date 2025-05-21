@@ -1,4 +1,4 @@
-// src/app/login/page.tsx
+// src/app/register/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,13 +10,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-export default function LoginPage() {
+export default function RegisterPage() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); // Password is for show, not validated
-  const { login, user, loading: authLoading } = useAuth();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const { register, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -27,9 +31,27 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+      });
+      return;
+    }
+    if (name && email && password) {
       const redirectUrl = searchParams.get('redirect') || '/';
-      login(email, redirectUrl); 
+      register(name, email, redirectUrl);
+      toast({
+        title: "Registration Successful!",
+        description: "Welcome to Truth Sleuth!",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill out all fields.",
+      });
     }
   };
 
@@ -40,16 +62,28 @@ export default function LoginPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto flex min-h-[calc(100vh-4rem-1px)] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome Back!</CardTitle>
-          <CardDescription>Log in to access Truth Sleuth and your history.</CardDescription>
+          <CardTitle className="text-2xl">Create an Account</CardTitle>
+          <CardDescription>Join Truth Sleuth to start your fact-checking journey.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="text-base"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -71,21 +105,31 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6} // Basic validation
                 className="text-base"
               />
-               <p className="text-xs text-muted-foreground">
-                Note: For this prototype, any password will work.
-              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="text-base"
+              />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full">
-              Log In
+              Sign Up
             </Button>
             <p className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="font-medium text-primary hover:underline">
-                Sign up
+              Already have an account?{' '}
+              <Link href="/login" className="font-medium text-primary hover:underline">
+                Log in
               </Link>
             </p>
           </CardFooter>
